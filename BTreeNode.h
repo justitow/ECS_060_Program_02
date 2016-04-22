@@ -15,7 +15,7 @@ protected:
   BTreeNode *rightSibling;
 public:
   BTreeNode(int LSize, InternalNode *p, BTreeNode *left, BTreeNode *right);
-  virtual ~BTreeNode() {}  
+  virtual ~BTreeNode() {}
   int getCount() const;
   BTreeNode* getLeftSibling();
   virtual int getMinimum()const = 0;

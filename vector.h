@@ -6,6 +6,7 @@
  * the STL vector. Make sure to put the #include of this file
  * AFTER all the system includes.
  */
+
 #define vector Vector
 #include <cstddef>
 
