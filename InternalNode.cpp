@@ -83,12 +83,13 @@ bool InternalNode::hasRoom()
 
 bool InternalNode::lookForRoom(int value, BTreeNode* node)
 {
-  
+  /*
   if (this->lookLeft() || this->lookRight(value, node, 0))
     return true;
   return false;
 
-  /*
+  */
+  
   if (this->leftSibling != NULL && ((InternalNode*)this->getLeftSibling())->hasRoom())
   {
     InternalNode* left = ((InternalNode*)this->getLeftSibling());
@@ -113,7 +114,7 @@ bool InternalNode::lookForRoom(int value, BTreeNode* node)
   }
   else
   return false;
-  */
+  
 }
 
 bool InternalNode::lookLeft()
