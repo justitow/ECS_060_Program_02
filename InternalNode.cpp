@@ -32,13 +32,13 @@ InternalNode* InternalNode::insert(int value)
   {
     if (!this->hasRoom())
     {
-      if(!this->lookForRoom())
+      if(!this->lookForRoom(value, node))
       {
         return performInternalSplit(value, node);
       }
     }
-
-    this->insertKeyAndChild(node->getMinimum(), node);
+    if (!(this->rightSibling != NULL && (((InternalNode*)this->getRightSibling())->keys[0] == value)))
+      this->insertKeyAndChild(node->getMinimum(), node);
   }
 
   this->repairRelationships();
@@ -81,10 +81,37 @@ bool InternalNode::hasRoom()
   return true;
 }
 
-bool InternalNode::lookForRoom()
+bool InternalNode::lookForRoom(int value, BTreeNode* node)
 {
-  if (this->lookLeft() || this->lookRight())
+  /*
+  if (this->lookLeft() || this->lookRight(value, node, 0))
     return true;
+  return false;
+  */
+
+  if (this->leftSibling != NULL && ((InternalNode*)this->getLeftSibling())->hasRoom())
+  {
+    InternalNode* left = ((InternalNode*)this->getLeftSibling());
+    left->insertKeyAndChild(this->keys[0], this->children[0]);
+    this->removeMin();
+    return true;
+  }
+  else if(this->rightSibling != NULL && ((InternalNode*)this->getRightSibling())->hasRoom())
+  {
+    InternalNode* right = ((InternalNode*)this->getRightSibling());
+    int max = this->keys[count-1];
+    if (value > max)
+    {
+      right->insertKeyAndChild(value, node);
+    }
+    else
+    {
+      right->insertKeyAndChild(this->keys[this->count - 1], this->children[this->count - 1]);
+      this->removeMax();
+    }
+    return true;
+  }
+  else
   return false;
 
 }
@@ -107,19 +134,29 @@ bool InternalNode::lookLeft()
   return false;
 }
 
-bool InternalNode::lookRight()
+bool InternalNode::lookRight(int value, BTreeNode* node, int iter)
 {
   InternalNode* right = (InternalNode*)this->getRightSibling();
 
   if (right != NULL)
   {
-    if (right->hasRoom() || ((!right->hasRoom() && right->lookRight())))
+    if (right->hasRoom() || ((!right->hasRoom() && right->lookRight(value, node, iter + 1))))
     {
-      right->insertKeyAndChild(this->keys[this->count-1], this->children[this->count-1]);
-      this->removeMax();
+      int max = this->keys[count-1];
+
+      if (value > max && iter == 0)
+      {
+        right->insertKeyAndChild(value, node);
+      }
+      else
+      {
+        right->insertKeyAndChild(this->keys[this->count - 1], this->children[this->count - 1]);
+        this->removeMax();
+      }
       return true;
     }
   }
+
 
   return false;
 }
@@ -168,28 +205,7 @@ void InternalNode::insertKeyAndChild(int value, BTreeNode *child)
 InternalNode* InternalNode::performInternalSplit(int value, BTreeNode* node)
 {
   this->repairRelationships();
-  /*
-  int index = this->findInsertionIndex(value);
-  index = this->findSplitIndex(index);
 
-  InternalNode* newNode = new InternalNode(internalSize ,leafSize, this->parent, NULL, NULL);
-  for (int i = index; i < count; i++)
-  {
-    newNode->insertKeyAndChild(this->keys[i], this->children[i]);
-  }
-
-  this->count = internalSize/2;
-
-  if (index > internalSize/2 - 1)
-  {
-    this->count = internalSize / 2 + internalSize%2 ;
-    newNode->insert(value);
-  }
-  else
-    this->insert(value);
-
-
-  */
   int index = this->findInsertionIndex(value);
 
   InternalNode* newNode = new InternalNode(internalSize, leafSize, this->parent, NULL, NULL);
@@ -211,7 +227,6 @@ InternalNode* InternalNode::performInternalSplit(int value, BTreeNode* node)
       {
         newNode->insertKeyAndChild(this->children[i]->getMinimum(), this->children[i]);
       }
-      cout << node->getMinimum() << endl;
       newNode->insertKeyAndChild(node->getMinimum(), node);
       this->count = this->count/2 + 1;
     }
@@ -271,9 +286,11 @@ void InternalNode::repairRelationships()
       this->keys[i] = this->children[i]->getMinimum();
       this->children[i]->setRightSibling(this->children[i+1]);
       this->children[i+1]->setLeftSibling(this->children[i]);
+      this->children[i+1]->setRightSibling(NULL);
     }
   }
-
+  this->children[0]->setLeftSibling(NULL);
+  this->children[count-1]->setRightSibling(NULL);
   this->keys[this->count - 1] = this->children[this->count - 1]->getMinimum();
 
 }

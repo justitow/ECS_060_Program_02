@@ -20,8 +20,8 @@ public:
 
   bool hasRoom(); //returns true if a value can fit in
   bool lookLeft(); //recursively looks to the left nodes and moves items down if room is found.
-  bool lookRight(); //recursively looks to the right nodes and moves donw
-  bool lookForRoom(); //calls left then right
+  bool lookRight(int value, BTreeNode* node, int iter); //recursively looks to the right nodes and moves donw
+  bool lookForRoom(int value, BTreeNode* node); //calls left then right
 
   int findInsertionIndex(int value); //finds where the new key and child should be inserted
   int findInsertionKeyIndex(int value); // finds where the new value is going

@@ -44,7 +44,9 @@ LeafNode* LeafNode::insert(int value)
     }
   }
 
-  insertValue(value);
+  if (!(this->rightSibling != NULL && (((LeafNode*)this->getRightSibling())->values[0] == value)))
+    insertValue(value);
+
 
   return NULL;
 }  // LeafNode::insert()
@@ -66,10 +68,38 @@ bool LeafNode::hasRoom()
 
 bool LeafNode::lookForRoom(int value)
 {
-  if (this->lookLeft(value) || this->lookRight(value))
+  /*
+  if (this->lookLeft(value) || this->lookRight(value, 0))
     return true;
   else
     return false;
+    */
+
+  if (this->leftSibling != NULL && ((LeafNode*)this->getLeftSibling())->hasRoom())
+  {
+    LeafNode* left = ((LeafNode*)this->getLeftSibling());
+    left->insertValue(this->getMinimum());
+    this->removeMin();
+    return true;
+  }
+  else if(this->rightSibling != NULL && ((LeafNode*)this->getRightSibling())->hasRoom())
+  {
+    LeafNode* right = ((LeafNode*)this->getRightSibling());
+    int max = this->getMax();
+    if (value > max)
+    {
+      right->insertValue(value);
+    }
+    else
+    {
+      right->insertValue(max);
+      this->removeMax();
+    }
+    return true;
+  }
+  else
+    return false;
+
 
 }
 
@@ -90,16 +120,24 @@ bool LeafNode::lookLeft(int value)
   return false;
 }
 
-bool LeafNode::lookRight(int value)
+bool LeafNode::lookRight(int value, int iter)
 {
   LeafNode* right = (LeafNode*)this->getRightSibling();
 
   if (right != NULL)
   {
-    if (right->hasRoom() || ((!right->hasRoom() && right->lookRight(value))))
+    if (right->hasRoom() || ((!right->hasRoom() && right->lookRight(value, iter++))))
     {
-      right->insertValue(this->getMax());
-      this->removeMax();
+      int max = this->getMax();
+      if (value > max && iter == 0)
+      {
+        right->insertValue(value);
+      }
+      else
+      {
+        right->insertValue(max);
+        this->removeMax();
+      }
       return true;
     }
   }
